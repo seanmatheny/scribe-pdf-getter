@@ -406,13 +406,14 @@ def process_device(config: Config, mount_point: Path, notebooks_dir: Path) -> No
     print("Notebook conversion complete.")
 
 
-def process_mtp_device(config: Config) -> None:
+def process_mtp_device(config: Config, notebooks: Optional[Dict[str, int]] = None) -> None:
     print("Kindle Scribe MTP connection detected")
     ensure_dirs(config)
 
     labels = load_json(config.labels_file_path, {})
     converted: List[Tuple[str, Path]] = []
-    notebooks = discover_mtp_notebooks(config)
+    if notebooks is None:
+        notebooks = discover_mtp_notebooks(config)
     if not notebooks:
         print("No Kindle Scribe notebooks found over MTP.")
         return
@@ -438,10 +439,12 @@ def watch(config: Config) -> None:
 
     while True:
         mounts = discover_kindle_mounts(config)
-        mtp_notebooks = discover_mtp_notebooks(config)
+        mtp_notebooks: Dict[str, int] = {}
         current: Set[str] = {str(mount) for mount in mounts.keys()}
-        if mtp_notebooks:
-            current.add("mtp://kindle")
+        if not mounts:
+            mtp_notebooks = discover_mtp_notebooks(config)
+            if mtp_notebooks:
+                current.add("mtp://kindle")
 
         disconnected = connected - current
         for source in disconnected:
@@ -449,7 +452,7 @@ def watch(config: Config) -> None:
 
         if "mtp://kindle" in current and "mtp://kindle" not in connected:
             try:
-                process_mtp_device(config)
+                process_mtp_device(config, notebooks=mtp_notebooks)
             except Exception as e:
                 print(f"Error while processing Kindle Scribe over MTP: {e}")
 
@@ -468,19 +471,19 @@ def watch(config: Config) -> None:
 
 
 def run_once(config: Config) -> int:
-    mtp_notebooks = discover_mtp_notebooks(config)
-    if mtp_notebooks:
-        process_mtp_device(config)
+    mounts = discover_kindle_mounts(config)
+    if mounts:
+        for mount_point, notebooks_dir in mounts.items():
+            process_device(config, mount_point, notebooks_dir)
         return 0
 
-    mounts = discover_kindle_mounts(config)
-    if not mounts:
-        print("No Kindle Scribe mount or MTP device found.")
-        return 1
+    mtp_notebooks = discover_mtp_notebooks(config)
+    if mtp_notebooks:
+        process_mtp_device(config, notebooks=mtp_notebooks)
+        return 0
 
-    for mount_point, notebooks_dir in mounts.items():
-        process_device(config, mount_point, notebooks_dir)
-    return 0
+    print("No Kindle Scribe mount or MTP device found.")
+    return 1
 
 
 def parse_args() -> argparse.Namespace:
