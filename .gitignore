@@ -8,3 +8,6 @@
 # Except README.md
 !README.md
 !.gitignore
+# Ignore Python caches in script folder
+script/__pycache__/
+script/*.pyc
