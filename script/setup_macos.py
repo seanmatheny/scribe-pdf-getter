@@ -22,6 +22,7 @@ def main() -> int:
     ebook_convert_default = shutil.which("ebook-convert") or "/Applications/calibre.app/Contents/MacOS/ebook-convert"
 
     update_obsidian = prompt("Create markdown files with PDF attachments for Obsidian", "Yes")
+    use_mtp = prompt("Enable Kindle Scribe MTP middleware", "Yes")
 
     config = {
         "kindle_name_substring": prompt("Kindle volume name contains", "Kindle"),
@@ -44,6 +45,12 @@ def main() -> int:
         "update_obsidian": update_obsidian.lower() in {"yes", "y", "true", "1"},
         "obsidian_target_dir": prompt("Obsidian target directory", str(Path.home() / "Obsidian")),
         "obsidian_attachments_subdir": prompt("Obsidian attachments subdirectory", "assets/pdf"),
+        "mtp_enabled": use_mtp.lower() in {"yes", "y", "true", "1"},
+        "mtp_device_name_substring": prompt("MTP device name contains", "Kindle"),
+        "mtp_detect_command": prompt("MTP detect command", "mtp-detect"),
+        "mtp_folders_command": prompt("MTP folders command", "mtp-folders"),
+        "mtp_files_command": prompt("MTP files command", "mtp-files"),
+        "mtp_get_file_command": prompt("MTP get-file command", "mtp-getfile"),
     }
 
     settings_dir.mkdir(parents=True, exist_ok=True)
