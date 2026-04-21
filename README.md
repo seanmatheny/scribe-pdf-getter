@@ -12,9 +12,10 @@ This repository exports Kindle Scribe notebooks, converts them to PDFs, and impo
 
 ## macOS requirements
 
-1. Python 3 (available by default on most macOS setups as `python3`)
-2. [Calibre](https://calibre-ebook.com/)
-3. Calibre **KFX Input** plugin
+- Python 3 (available by default on most macOS setups as `python3`)
+- [Calibre](https://calibre-ebook.com/)
+- Calibre **KFX Input** plugin
+- `libmtp` tools (for MTP access): `brew install libmtp`
 
 ## macOS setup
 
@@ -60,10 +61,10 @@ Logs:
 
 ## macOS behavior
 
-When a Kindle Scribe volume is connected over USB, the watcher:
+When a Kindle Scribe is connected over USB, the watcher:
 
-1. Detects the mounted Kindle volume in `/Volumes`
-2. Copies native notebook `nbk` files from `.notebooks/<GUID>/nbk`
+1. Detects the device over MTP (`mtp-detect`, `mtp-folders`, `mtp-files`, `mtp-getfile`) and pulls native notebook `nbk` files from `.notebooks/<GUID>/nbk`
+2. Falls back to mounted-volume detection in `/Volumes` when applicable
 3. Converts changed notebooks via Calibre to EPUB and then PDF
 4. Imports converted PDFs into an Obsidian-compatible target directory by:
    - copying PDFs to the configured attachment folder (default `assets/pdf`)
